@@ -6,12 +6,95 @@
 
     <script id="wireframe-V" type="x-shader/x-vertex">
         #version 300 es
-        in vec3 aVertexPosition;
+        precision mediump float;
         
+        in vec4 aVertexPosition;
+
+        uniform mat4 viewT;
+        uniform mat4 modelT;
+        uniform mat4 projT;
+
         void main()
         {
-            gl_Position = aVertexPosition;
+            gl_Position = projT * viewT * modelT * aVertexPosition;
         }
+    </script>
+
+    <!-- vertex Shader -->
+    <script id="phong-per-vertex-V"  type="x-shader/x-vertex">
+    #version 300 es
+    precision mediump float;
+    // Vertex shader for phong illumination model
+    // Per vertex shading
+
+    // Vertex Attributes
+    in vec3 aVertexPosition; // in model coords
+    in vec3 aNormal;    // in model coords
+    in vec2 aUV;
+
+    // outputs
+    out vec3 theColor;
+    out vec2 theUV;
+
+    // Transforms
+    uniform mat4 modelT;
+    uniform mat4 viewT;
+    uniform mat4 projT;
+
+    // Light parameters
+    uniform vec3 ambientLight;
+    uniform vec3 lightPosition;   // in world coords
+    uniform vec3 secondLightPosition;
+    uniform vec3 lightColor;
+
+    // object color parameters
+    uniform vec3 baseColor;
+    uniform vec3 specHighlightColor;
+
+    // Phong parameters
+    uniform float ka;
+    uniform float kd;
+    uniform float ks;
+    uniform float ke;
+
+    void main()
+    {
+        // All calculations will be done in camera space
+        mat4 modelView = viewT * modelT;
+        mat4 normalmatrix = transpose(inverse (modelView));
+
+        vec3 vcam = (modelView * vec4(aVertexPosition, 1.0)).xyz;
+        vec3 lcam = (viewT * vec4(lightPosition, 1.0)).xyz;
+        vec3 lcam2 = (viewT * vec4(secondLightPosition, 1.0)).xyz;
+        vec3 ncam = (normalmatrix * vec4(aNormal, 1.0)).xyz;
+        ncam = faceforward (ncam, vcam, ncam);
+
+
+        vec3 N = normalize (ncam);
+        vec3 L = normalize (lcam - vcam);
+        vec3 L2 = normalize (lcam2 - vcam);
+        vec3 R = normalize (reflect (-L, N));
+        vec3 R2 = normalize (reflect (-L2, N));
+        vec3 V = -normalize (vcam);
+
+        // individual components
+        vec3 ambient = ka * ambientLight * baseColor;
+        vec3 diffuse = kd * lightColor * baseColor * max (dot(L, N), 0.0);
+        vec3 diffuse2 = kd * lightColor * baseColor * max (dot(L2, N), 0.0);
+        vec3 spec = ks * specHighlightColor * lightColor * pow (max(dot(R, V), 0.0), ke);
+        vec3 spec2 = ks * specHighlightColor * lightColor * pow(max(dot(R2, V), 0.0), ke);
+
+        // final color
+        theColor = ambient + diffuse + diffuse2 + spec + spec2;
+
+        // pass uv to fragment shader
+        theUV = aUV;
+
+
+        // transform vertex to clip space
+        gl_Position = projT * viewT * modelT * vec4 (aVertexPosition, 1.0);
+    }
+
     </script>
 
      <!-- wireframe fragment Shaders -->
@@ -27,7 +110,37 @@
          }
 
      </script>
-     
+
+    <script id="phong-per-vertex-F" type="x-shader/x-fragment">
+          #version 300 es
+
+          // Fragment shader for phong illumination model
+          // Per fragment shading
+
+
+          precision mediump float;
+
+          in vec3 theColor;
+          in vec2 theUV;
+
+          // texture uniform
+          uniform sampler2D theTexture;
+          uniform int isTextured;
+
+          // Color that is the result of this shader
+          out vec4 fragColor;
+
+          void main(void) {
+              if(isTextured == 1){
+                fragColor = texture (theTexture, theUV);
+              }
+              else{
+                fragColor = vec4 (theColor.xyz, 1.0);
+              }
+          }
+
+     </script>
+
      <!-- Matrix library and code for standard transformations -->
      <script type="text/javascript" src="gl-matrix-min.js"></script>
     
@@ -42,7 +155,7 @@
     <script type="text/javascript" src="./event.js"></script>
     
     <!-- texture images -->
-     <img id="world-texture" src="marble.jpg" style="display: none;"> </img>
+     <img id="floor-texture" src="marble.jpg" style="display: none;"> </img>
 
   <script type="text/javascript">
     // Call init once the webpage has loaded

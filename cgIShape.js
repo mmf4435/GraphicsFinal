@@ -8,12 +8,13 @@ class cgIShape {
     }
     
     addTriangle (x0,y0,z0,x1,y1,z1,x2,y2,z2) {
-        var nverts = this.points.length / 3;
+        var nverts = this.points.length / 4;
         
         // push first vertex
         this.points.push(x0);  this.bary.push (1.0);
         this.points.push(y0);  this.bary.push (0.0);
         this.points.push(z0);  this.bary.push (0.0);
+        this.points.push(1.0);
         this.indices.push(nverts);
         nverts++;
         
@@ -21,6 +22,7 @@ class cgIShape {
         this.points.push(x1); this.bary.push (0.0);
         this.points.push(y1); this.bary.push (1.0);
         this.points.push(z1); this.bary.push (0.0);
+        this.points.push(1.0);
         this.indices.push(nverts);
         nverts++
         
@@ -28,6 +30,7 @@ class cgIShape {
         this.points.push(x2); this.bary.push (0.0);
         this.points.push(y2); this.bary.push (0.0);
         this.points.push(z2); this.bary.push (1.0);
+        this.points.push(1.0);
         this.indices.push(nverts);
         nverts++;
     }
