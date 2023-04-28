@@ -278,7 +278,7 @@ function setUpPhong(program){
         glMatrix.vec3.set(scaleVec, 50, 20, 0.1);
 
         translationVec = glMatrix.vec3.create();
-        glMatrix.vec3.set(translationVec, 0, -4.6, -4);
+        glMatrix.vec3.set(translationVec, 0, -4.6, 4);
 
         glMatrix.mat4.translate(backgroundModelMatrix, backgroundModelMatrix, translationVec);
         glMatrix.mat4.scale(backgroundModelMatrix, backgroundModelMatrix, scaleVec);
