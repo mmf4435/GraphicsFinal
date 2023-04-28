@@ -14,6 +14,7 @@
   var endPoints = [null, null, null, null, null, null, null, null];
   var nose = null;
   var floor = null;
+  var backWall = null;
   
   // textures
   var floorTex = null;
@@ -48,6 +49,9 @@ function createShapes() {
 
     floor = new Cube(20, 20);
     floor.VAO = bindVAO(floor, balloonAnimalProgram);
+
+    backWall = new Cube(20, 20);
+    backWall.VAO = bindVAO(backWall, balloonAnimalProgram);
 }
 
 
@@ -267,6 +271,22 @@ function setUpPhong(program){
         gl.uniformMatrix4fv(balloonAnimalProgram.uModelT, false, backgroundModelMatrix);
         gl.bindVertexArray(floor.VAO);
         gl.drawElements(gl.TRIANGLES, floor.indices.length, gl.UNSIGNED_SHORT, 0);
+
+        backgroundModelMatrix = glMatrix.mat4.create();
+
+        scaleVec = glMatrix.vec3.create();
+        glMatrix.vec3.set(scaleVec, 50, 20, 0.1);
+
+        translationVec = glMatrix.vec3.create();
+        glMatrix.vec3.set(translationVec, 0, -4.6, -4);
+
+        glMatrix.mat4.translate(backgroundModelMatrix, backgroundModelMatrix, translationVec);
+        glMatrix.mat4.scale(backgroundModelMatrix, backgroundModelMatrix, scaleVec);
+
+        gl.uniform1i(balloonAnimalProgram.isTextured, 1);
+        gl.uniformMatrix4fv(balloonAnimalProgram.uModelT, false, backgroundModelMatrix);
+        gl.bindVertexArray(backWall.VAO);
+        gl.drawElements(gl.TRIANGLES, backWall.indices.length, gl.UNSIGNED_SHORT, 0);
     }
 
 
